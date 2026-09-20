@@ -173,7 +173,7 @@ test('контрольную точку нельзя перешагнуть дл
   openSource(s, scenario, 's_exit'); // 2 недели: с 3-й на 5-ю, точка на 4-й позади
   assert.equal(s.world.week, 5);
   assert.equal(pendingCheckpoint(s, scenario), 4, 'пройденная точка потерялась');
-  checkpointNote(s, { confidence: 55, note: 'перешагнула', forCheckpoint: 4 });
+  checkpointNote(s, { confidence: 55, note: 'перешагнул', forCheckpoint: 4, hypothesisId: 'h4' });
   assert.equal(pendingCheckpoint(s, scenario), null);
 });
 
@@ -243,4 +243,32 @@ test('выгруженный разбор содержит всё, на чём �
   const round = JSON.parse(JSON.stringify({ session: s, debrief: d }));
   assert.deepEqual(round.debrief.seeking.order, d.seeking.order);
   assert.equal(round.debrief.grounds[0].hypothesisLabel, d.grounds[0].hypothesisLabel);
+});
+
+// До первого решения версии ещё нет. Спрашивать «насколько уверен в своей
+// версии» у того, кто ничего не решал, бессмысленно — он назовёт её здесь.
+test('на точке до первого решения нужно назвать версию', () => {
+  const s = createSession(scenario, 1);
+  step(s, scenario, 4);
+  const empty = checkpointNote(s, { confidence: 40, forCheckpoint: 4 });
+  assert.equal(empty.ok, false);
+  assert.ok(empty.reason.includes('версию'));
+
+  const named = checkpointNote(s, { confidence: 40, forCheckpoint: 4, hypothesisId: 'h2' });
+  assert.equal(named.ok, true);
+  const note = s.journal.find(e => e.type === 'note');
+  assert.equal(note.hypothesisId, 'h2');
+});
+
+test('после решения версия подставляется сама', () => {
+  const s = createSession(scenario, 1);
+  commitAction(s, scenario, 'a_discount', {
+    hypothesisId: 'h2', expectation: 'Скидка удержит клиентов от ухода',
+    signs: [{ metricId: 'churn_segment', direction: 'down', target: 5 }],
+    confidence: 60, dueWeek: 10
+  });
+  step(s, scenario, 4);
+  const r = checkpointNote(s, { confidence: 45, forCheckpoint: 4 });
+  assert.equal(r.ok, true);
+  assert.equal(s.journal.find(e => e.type === 'note').hypothesisId, 'h2');
 });

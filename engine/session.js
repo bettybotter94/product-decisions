@@ -110,12 +110,17 @@ export function step(session, scenario, weeks) {
  * что сейчас думает и насколько уверен. Это данные о динамике уверенности,
  * а не действие — мир от неё не меняется.
  */
-export function checkpointNote(session, { confidence, note, forCheckpoint }) {
+export function checkpointNote(session, { confidence, note, forCheckpoint, hypothesisId }) {
   if (session.finished) return { ok: false, reason: 'Прогон завершён' };
   if (!(confidence >= 1 && confidence <= 99)) return { ok: false, reason: 'Уверенность от 1 до 99%' };
-  // forCheckpoint — та точка, к которой относится отметка. Она может быть
-  // раньше текущей недели: длинный запрос сведений способен перешагнуть точку.
+  // До первого решения версии ещё нет — её здесь и называют.
+  // Спрашивать «насколько уверен в своей версии» у того, кто ничего
+  // не решал, бессмысленно: уверен в чём?
+  if (!session.contracts.length && !hypothesisId) {
+    return { ok: false, reason: 'Назови версию, которая сейчас кажется самой правдоподобной' };
+  }
   log(session, { type: EV.NOTE, confidence, note: (note || '').trim(),
+                 hypothesisId: hypothesisId ?? session.contracts[session.contracts.length - 1]?.hypothesisId,
                  forCheckpoint: forCheckpoint ?? session.world.week });
   return { ok: true };
 }

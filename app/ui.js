@@ -42,7 +42,7 @@ let profile = loadProfile();
 let stage = Number(localStorage.getItem(STAGE_KEY)) || 0; // 0 — ступень ещё не выбрана
 let tab = 'welcome';
 let formError = null;
-let noteDraft = { confidence: '', note: '' };
+let noteDraft = { confidence: '', note: '', hypothesisId: '' };
 let draft = blankDraft();
 if (stage && session.journal.length) tab = 'situation';
 else if (stage) tab = 'episodes';
@@ -315,6 +315,8 @@ function checkpointBanner() {
   if (!week) return null;
   const due = evaluated().filter(c => c.dueWeek <= week);
   const passed = session.world.week > week;
+  const last = session.contracts[session.contracts.length - 1];
+  const current = last && scenario.hypotheses.find(h => h.id === last.hypothesisId);
   return el('div', { class: 'panel stop checkpoint-card' },
     el('h2', {}, `Контрольная точка: ${week}-я неделя`),
     el('p', { class: 'sub' },
@@ -322,8 +324,8 @@ function checkpointBanner() {
         ? `Сейчас ${session.world.week}-я неделя: запрос сведений занял больше времени, ` +
           'чем оставалось до точки, и она прошла на ходу. '
         : 'Время остановилось само. ') +
-      'Это не оценка — здесь ничего не считается. Скажи, что ты думаешь ' +
-      'сейчас, и двигайся дальше.'),
+      'Здесь ничего не оценивается. Это отметка на полях: что ты думаешь ' +
+      'прямо сейчас, до того как узнаешь, чем дело кончилось.'),
     due.length ? el('div', { class: 'sub' },
       'Сроки, которые уже наступили: ' +
       due.map(c => `${c.verdict === 'met' ? 'сбылось' : 'не сбылось'} (${c.dueWeek}-я неделя)`).join(', ')) : null,
@@ -335,14 +337,19 @@ function checkpointBanner() {
     el('label', {}, 'Что изменилось с прошлого раза (по желанию)'),
     el('textarea', { oninput: e => { noteDraft.note = e.target.value; } }, noteDraft.note),
     el('div', { style: 'margin-top:12px' },
-      el('button', { class: 'act', disabled: noteDraft.confidence === '', onclick: () => {
+      el('button', { class: 'act',
+        disabled: noteDraft.confidence === '' || (!current && !noteDraft.hypothesisId),
+        onclick: () => {
         const r = checkpointNote(session, { ...noteDraft, forCheckpoint: week });
-        if (!r.ok) { formError = r.reason; } else { noteDraft = { confidence: '', note: '' }; }
+        if (!r.ok) { formError = r.reason; }
+        else { noteDraft = { confidence: '', note: '', hypothesisId: '' }; }
         save(); render();
       } }, 'Записать и продолжить'),
-      noteDraft.confidence === ''
+      noteDraft.confidence === '' || (!current && !noteDraft.hypothesisId)
         ? el('span', { class: 'sub', style: 'margin-left:10px' },
-            'Число нужно назвать: по нему потом считается калибровка.')
+            current
+              ? 'Число нужно назвать: по нему потом считается калибровка.'
+              : 'Назови версию и число — по ним видно, как менялось твоё мнение.')
         : null));
 }
 

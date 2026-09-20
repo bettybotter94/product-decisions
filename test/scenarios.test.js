@@ -60,7 +60,10 @@ for (const sc of EPISODES) {
       assert.ok(actionIds.includes(r.action), `правило для неизвестного действия: ${r.action}`);
       if (r.ifTruth) assert.ok(hypIds.includes(r.ifTruth));
       if (r.unlessTruth) assert.ok(hypIds.includes(r.unlessTruth));
-      assert.ok(r.note && r.note.length > 10, `у правила ${r.action} нет объяснения для разбора`);
+      // Последствие рассказывается сценой: человек запоминает не дельту,
+      // а то, что кто-то сказал на ревью. Короткий ярлык этого не даёт.
+      assert.ok(r.note && r.note.length >= 60,
+        `правило ${r.action}: последствие описано ярлыком, а не тем, что произошло`);
       for (const e of r.effects) {
         assert.ok(sc.metrics[e.metric], `эффект по неизвестному показателю: ${e.metric}`);
         assert.ok(e.afterWeeks > 0 && e.afterWeeks <= sc.horizonWeeks, 'эффект вне горизонта');

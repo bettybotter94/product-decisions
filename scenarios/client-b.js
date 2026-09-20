@@ -167,7 +167,9 @@ export default {
         { metric: 'quarter_progress', delta: -38, afterWeeks: 6 },
         { metric: 'relationship', delta: 16, afterWeeks: 7 }
       ],
-      note: 'Доработку сделали, договор продлили. Квартальная цель не закрыта — это была цена, и в этот раз она оправдана.'
+      note: 'Шесть недель команда делала выгрузку. Комитет собрался, посмотрел ' +
+        'работающую версию и продлил договор. Квартальная цель не закрыта — ' +
+        'это была цена, и в этот раз она того стоила.'
     },
     {
       action: 'a_build_full', unlessTruth: 'h1',
@@ -175,7 +177,8 @@ export default {
         { metric: 'quarter_progress', delta: -38, afterWeeks: 6 },
         { metric: 'relationship', delta: 14, afterWeeks: 7 }
       ],
-      note: 'Полная доработка съела квартальную цель. Клиент доволен — но он и так не уходил.'
+      note: 'Шесть недель ушли на выгрузку. Клиент доволен, но он и не уходил. ' +
+        'Квартальная цель не закрыта.'
     },
     {
       action: 'a_build_slice', ifTruth: 'h1',
@@ -184,7 +187,8 @@ export default {
         { metric: 'quarter_progress', delta: -9, afterWeeks: 3 },
         { metric: 'relationship', delta: 9, afterWeeks: 4 }
       ],
-      note: 'Срез закрыл часть сценария. Комитет это заметил, но счёл половинчатым: удержать удалось не всё.'
+      note: 'Срез закрыл половину того, что им нужно. На комитете это заметили ' +
+        'и оценили — но решили сократить объём, а не уйти совсем.'
     },
     {
       action: 'a_build_slice', unlessTruth: 'h1',
@@ -192,7 +196,7 @@ export default {
         { metric: 'relationship', delta: 11, afterWeeks: 4 },
         { metric: 'quarter_progress', delta: -9, afterWeeks: 3 }
       ],
-      note: 'Узкий срез закрыл их сценарий и почти не тронул квартальную цель.'
+      note: 'Срез сделали быстро, сценарий закрыт, квартальная цель цела.'
     },
     {
       action: 'a_meet_dm', ifTruth: 'h1',
@@ -200,12 +204,14 @@ export default {
         { metric: 'revenue_anchor', delta: 0.18, afterWeeks: 2 },
         { metric: 'relationship', delta: 8, afterWeeks: 1 }
       ],
-      note: 'Разговор помог понять, что происходит, и немного отсрочил решение комитета. Но словами выгрузку не заменишь.'
+      note: 'Директор по операциям честно объяснил, что происходит, и даже ' +
+        'отложил комитет на две недели. Но выгрузку словами не заменишь — ' +
+        'к следующему разу нужна была она, а не понимание.'
     },
     {
       action: 'a_meet_dm', unlessTruth: 'h1',
       effects: [{ metric: 'relationship', delta: 12, afterWeeks: 1 }],
-      note: 'Встреча сняла напряжение и прояснила, кто за что отвечает.'
+      note: 'Встреча сняла напряжение и прояснила, кто у них за что отвечает.'
     },
     {
       action: 'a_discount_extend',
@@ -213,12 +219,14 @@ export default {
         { metric: 'revenue_anchor', delta: -0.27, afterWeeks: 1 },
         { metric: 'relationship', delta: 5, afterWeeks: 2 }
       ],
-      note: 'Скидка обошлась в часть выручки и почти не повлияла: просили не денег.'
+      note: 'Предложили скидку. Её приняли — и всё равно продолжили считать, ' +
+        'во сколько обходится второй подрядчик. Просили не денег.'
     },
     {
       action: 'a_formal_reply',
       effects: [{ metric: 'relationship', delta: -9, afterWeeks: 4 }],
-      note: 'Формальный ответ в бэклог прочитали именно так, как он написан.'
+      note: 'Ответ «принято в бэклог» прочитали именно так, как он написан. ' +
+        'Больше писем не было.'
     }
   ],
 
