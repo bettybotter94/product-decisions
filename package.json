@@ -1,0 +1,10 @@
+{
+  "name": "antilopa-prototip",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/",
+    "start": "python3 serve.py"
+  }
+}

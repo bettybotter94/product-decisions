@@ -1,0 +1,124 @@
+:root{
+  --bg:#fbfaf8; --panel:#fff; --ink:#1c1b19; --muted:#6b6862;
+  --line:#e4e1db; --accent:#2f5d50; --warn:#8a4b2a; --ok:#2f6b3f;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#app{max-width:1060px;margin:0 auto;padding:24px 20px 64px}
+h1{font-size:19px;margin:0 0 2px}
+h2{font-size:15px;margin:0 0 10px;letter-spacing:.01em}
+h3{font-size:14px;margin:18px 0 6px}
+p{margin:0 0 10px}
+.sub{color:var(--muted);font-size:13px}
+.bar{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:14px}
+.bar .grow{flex:1 1 220px}
+.metrics{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px}
+.metric{min-width:120px}
+.metric b{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.metric span{font-size:11.5px;color:var(--muted);display:block;line-height:1.3}
+.delta{font-size:11.5px;font-variant-numeric:tabular-nums}
+.delta.good{color:var(--ok)} .delta.bad{color:var(--warn)}
+nav{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+nav button{background:none;border:1px solid transparent;border-radius:7px;
+  padding:6px 12px;font:inherit;font-size:13.5px;color:var(--muted);cursor:pointer}
+nav button.on{background:var(--panel);border-color:var(--line);color:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:18px 20px;margin-bottom:12px}
+button.act{background:var(--accent);color:#fff;border:0;border-radius:7px;
+  padding:7px 14px;font:inherit;font-size:13.5px;cursor:pointer}
+button.act:disabled{background:#c9c6c0;cursor:not-allowed}
+button.ghost{background:none;border:1px solid var(--line);border-radius:7px;
+  padding:6px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink)}
+.src{border-top:1px solid var(--line);padding:11px 0;display:flex;gap:12px;align-items:flex-start}
+.src:first-of-type{border-top:0}
+.src .t{flex:1}
+.src .cost{font-size:12px;color:var(--muted);white-space:nowrap;padding-top:3px}
+.content{background:#f6f4f0;border-left:2px solid var(--accent);
+  padding:10px 13px;margin-top:8px;border-radius:0 6px 6px 0;font-size:14px}
+.kind{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+label{display:block;font-size:12.5px;color:var(--muted);margin:12px 0 4px}
+select,input[type=text],input[type=number],textarea{
+  width:100%;font:inherit;font-size:14px;padding:7px 9px;border:1px solid var(--line);
+  border-radius:6px;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 150px}
+.err{color:var(--warn);font-size:13px;margin-top:8px}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:20px;
+  background:#efece7;color:var(--muted);margin-right:5px}
+.tag.ok{background:#e4efe6;color:var(--ok)}
+.tag.miss{background:#f6e7de;color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px}
+ol.q{padding-left:20px} ol.q li{margin-bottom:9px}
+.note{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);
+  padding-top:10px;margin-top:14px}
+
+.panel.stop{border-color:#d8c6a8;background:#fdf9f1}
+
+details.recap{border-top:1px solid var(--line);padding:9px 0}
+details.recap:first-of-type{border-top:0}
+details.recap summary{cursor:pointer;font-size:14px;list-style:revert}
+details.recap .content{margin-top:8px}
+
+ol.order{padding-left:20px;margin:6px 0 0}
+ol.order li{margin-bottom:5px;font-size:14px}
+
+/* шапка: задача, счётчики, подсказка «что сейчас» */
+.goal{margin:10px 0 0;font-size:14px;max-width:62ch}
+.counters{display:flex;gap:26px;flex-wrap:wrap;margin:14px 0 4px}
+.counter b{display:block;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.counter span{font-size:11.5px;color:var(--muted);display:block;line-height:1.35;max-width:26ch}
+h3.mhead{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);font-weight:600;margin:16px 0 2px}
+.timebox{flex:0 0 auto;display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.timebox .kind{margin-bottom:2px}
+.nextstep{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  background:#eef3f0;border:1px solid #cfded7;border-radius:var(--radius);
+  padding:12px 16px;margin-bottom:14px}
+.nextstep .now{font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--accent);font-weight:700}
+.nextstep .what{flex:1 1 260px;font-size:14px}
+
+svg.spark{display:block;width:104px;height:26px;margin-top:5px;overflow:visible}
+.metric{min-width:132px}
+
+tr.due td{color:var(--muted)}
+
+.panel.lead{border-color:#cfded7;background:#f2f7f4}
+.panel.lead ol.q li{margin-bottom:8px}
+
+.wide{overflow-x:auto}
+input.who{font:inherit;font-size:13px;font-weight:600;padding:4px 6px;
+  border:1px solid var(--line);border-radius:5px;min-width:110px;max-width:160px}
+
+/* первый экран и ступени самостоятельности */
+ol.howto{padding-left:20px;margin:4px 0 0}
+ol.howto li{margin-bottom:9px;max-width:66ch}
+.stages{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.stage{flex:1 1 220px;text-align:left;background:var(--panel);cursor:pointer;
+  border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;font:inherit}
+.stage:hover{border-color:var(--accent)}
+.stage.on{border-color:var(--accent);background:#f2f7f4}
+.stage b{display:block;font-size:14.5px;margin-bottom:3px}
+.stage .who{display:block;font-size:12px;color:var(--accent);margin-bottom:6px}
+.stage .what{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+
+ul.ask{padding-left:20px;margin:4px 0 0}
+ul.ask li{margin-bottom:7px;font-size:14px;max-width:66ch}
+
+.counter.wide-counter span{max-width:62ch}
+
+.blocked{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0;
+  background:#fdf4e7;border:1px solid #e3cfa9;border-radius:8px;padding:9px 12px;font-size:13.5px}
+.blocked span{flex:1 1 240px}
+
+details.recap.block{border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:10px 0}
+details.recap.block>summary{font-weight:600}
+
+.askbox{background:#f2f7f4;border:1px solid #cfded7;border-radius:8px;padding:12px 14px;margin:10px 0}
