@@ -144,6 +144,9 @@ function evaluated() {
                                   : { ...c, verdict: 'pending' });
 }
 const atCheckpoint = () => pendingCheckpoint(session, scenario);
+/** Годится ли введённая уверенность: пусто и крайние 0/100 не годятся. */
+const noteOk = () =>
+  noteDraft.confidence !== '' && noteDraft.confidence >= 1 && noteDraft.confidence <= 99;
 function recordRun(d) {
   if (session.recorded) return;
   profile = addRun(profile, summarise(session, scenario, d));
@@ -330,27 +333,38 @@ function checkpointBanner() {
       'Сроки, которые уже наступили: ' +
       due.map(c => `${c.verdict === 'met' ? 'сбылось' : 'не сбылось'} (${c.dueWeek}-я неделя)`).join(', ')) : null,
     el('label', {}, 'Насколько ты сейчас уверен в своей версии, %'),
-    el('input', { type: 'number', min: 1, max: 99, placeholder: 'от 1 до 99',
+    el('input', { type: 'text', inputmode: 'numeric', placeholder: 'от 1 до 99',
       value: noteDraft.confidence,
-      oninput: e => { noteDraft.confidence = e.target.value === '' ? '' : Number(e.target.value);
-                      render(); } }),
+      oninput: e => {
+        const digits = e.target.value.replace(/\D/g, '').slice(0, 3);
+        e.target.value = digits;
+        noteDraft.confidence = digits === '' ? '' : Number(digits);
+        render();
+      } }),
+    el('div', { class: 'sub', style: 'margin-top:4px' },
+      'От 1 до 99. Ста процентов здесь нет намеренно: полная уверенность ' +
+      'не проверяется — что бы ни случилось, она не может оказаться ' +
+      'ни правой, ни неправой.'),
     el('label', {}, 'Что изменилось с прошлого раза (по желанию)'),
     el('textarea', { oninput: e => { noteDraft.note = e.target.value; } }, noteDraft.note),
     el('div', { style: 'margin-top:12px' },
       el('button', { class: 'act',
-        disabled: noteDraft.confidence === '' || (!current && !noteDraft.hypothesisId),
+        disabled: !noteOk() || (!current && !noteDraft.hypothesisId),
         onclick: () => {
         const r = checkpointNote(session, { ...noteDraft, forCheckpoint: week });
         if (!r.ok) { formError = r.reason; }
         else { noteDraft = { confidence: '', note: '', hypothesisId: '' }; }
         save(); render();
       } }, 'Записать и продолжить'),
-      noteDraft.confidence === '' || (!current && !noteDraft.hypothesisId)
-        ? el('span', { class: 'sub', style: 'margin-left:10px' },
-            current
-              ? 'Число нужно назвать: по нему потом считается калибровка.'
-              : 'Назови версию и число — по ним видно, как менялось твоё мнение.')
-        : null));
+      !noteOk() || (!current && !noteDraft.hypothesisId)
+        ? el('span', { class: 'sub warn', style: 'margin-left:10px' },
+            noteDraft.confidence !== '' && !noteOk()
+              ? `${noteDraft.confidence}% не подходит — нужно число от 1 до 99.`
+              : current
+                ? 'Число нужно назвать: по нему потом считается калибровка.'
+                : 'Назови версию и число — по ним видно, как менялось твоё мнение.')
+        : null,
+      formError ? el('div', { class: 'err' }, formError) : null));
 }
 
 /* ---------- первый экран ---------- */
@@ -637,17 +651,34 @@ function decision() {
       el('select', { onchange: e => set('direction', e.target.value) },
         el('option', { value: 'down', selected: draft.direction === 'down' }, 'станет не больше'),
         el('option', { value: 'up', selected: draft.direction === 'up' }, 'станет не меньше')),
-      el('input', { type: 'number', step: '0.1', placeholder: 'значение', value: draft.target,
-        oninput: e => set('target', e.target.value) })),
+      el('input', { type: 'text', inputmode: 'decimal', placeholder: 'значение',
+        value: draft.target,
+        oninput: e => {
+          const v = e.target.value.replace(',', '.').replace(/[^\d.]/g, '');
+          e.target.value = v;
+          set('target', v);
+        } })),
 
     el('div', { class: 'row' },
       el('div', {}, el('label', {}, '4. Уверенность, %'),
-        el('input', { type: 'number', min: 1, max: 99, value: draft.confidence,
-          oninput: e => set('confidence', Number(e.target.value)) })),
+        el('input', { type: 'text', inputmode: 'numeric', placeholder: 'от 1 до 99',
+          value: draft.confidence,
+          oninput: e => {
+            const digits = e.target.value.replace(/\D/g, '').slice(0, 3);
+            e.target.value = digits;
+            set('confidence', digits === '' ? '' : Number(digits));
+          } }),
+        el('div', { class: 'sub', style: 'margin-top:4px' },
+          'От 1 до 99. Ста процентов нет: полная уверенность не проверяется.')),
       el('div', {}, el('label', {}, '5. К какой неделе это должно быть видно?'),
-        el('input', { type: 'number', min: session.world.week + 1, max: scenario.horizonWeeks,
+        el('input', { type: 'text', inputmode: 'numeric',
           placeholder: `от ${session.world.week + 1} до ${scenario.horizonWeeks}`,
-          value: draft.dueWeek, oninput: e => set('dueWeek', Number(e.target.value)) }),
+          value: draft.dueWeek,
+          oninput: e => {
+            const digits = e.target.value.replace(/\D/g, '').slice(0, 2);
+            e.target.value = digits;
+            set('dueWeek', digits === '' ? '' : Number(digits));
+          } }),
         el('div', { class: 'sub', style: 'margin-top:4px' },
           `Сейчас ${session.world.week}-я неделя, отчёт на ${scenario.horizonWeeks}-й. ` +
           'Слишком ранний срок — и эффект не успеет; слишком поздний — ' +
@@ -902,8 +933,9 @@ function debriefTab() {
       ? el('div', { class: 'panel' },
           el('h2', {}, 'Сроки'),
           d.timing.filter(t => t.dueBeforeEffect).map(t => el('p', { class: 'sub' },
-            `Срок стоял на ${t.dueWeek}-ю неделю, а раньше ${t.earliestPossibleWeek}-й ` +
-            'это действие не могло проявиться вообще.')),
+            `Срок стоял на ${t.dueWeek}-ю неделю, а эффект действия приходит ` +
+            `не раньше ${t.earliestPossibleWeek}-й: всё, что сдвинулось к сроку, ` +
+            'сдвинулось само.')),
           d.waiting.filter(w => w.actedBeforeOwnDeadline).map(w => el('p', { class: 'sub' },
             `Срок стоял на ${w.dueWeek}-ю неделю, а следующее решение принято ` +
             `на ${w.firstEarlyActionWeek}-й: собственную проверку не дождались ` +
@@ -930,8 +962,11 @@ function debriefTab() {
           el('td', {}, e.weeksToNextAction === null ? '—' : String(e.weeksToNextAction)))))) : null,
 
     el('div', { class: 'panel' },
-      el('h2', {}, 'Правда этого варианта'),
-      el('p', {}, el('b', {}, d.truth.label)),
+      el('h2', {}, 'Что было на самом деле'),
+      el('p', {}, el('b', {}, d.truth.label),
+        d.contracts.length && d.contracts[d.contracts.length - 1].hypothesisId === d.truth.id
+          ? el('span', { class: 'tag ok', style: 'margin-left:8px' }, 'ты назвал верно')
+          : null),
       el('div', { class: 'sub' },
         'Правила мира были записаны до прогона и не зависели от того, ' +
         'что ты записал в контракт.')),

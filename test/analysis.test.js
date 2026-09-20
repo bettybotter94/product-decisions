@@ -272,3 +272,51 @@ test('после решения версия подставляется сама
   assert.equal(r.ok, true);
   assert.equal(s.journal.find(e => e.type === 'note').hypothesisId, 'h2');
 });
+
+// Финальный вопрос разбора не должен отчитывать человека за верный ответ.
+test('угадавшему причину задаётся другой вопрос, а не «где ты мог это увидеть»', () => {
+  const s = createSession(scenario, 1);
+  openSource(s, scenario, 's_support');
+  commitAction(s, scenario, 'a_support_staff', {
+    hypothesisId: 'h4', expectation: 'Разгрузим очередь в поддержке, отток пойдёт вниз',
+    signs: [{ metricId: 'churn_segment', direction: 'down', target: 6 }],
+    confidence: 65, dueWeek: 11
+  });
+  runToEnd(s, scenario);
+  const q = buildDebrief(s, scenario).questions;
+  const last = q[q.length - 1];
+  assert.ok(last.includes('назвал её верно'), `вместо похвалы: ${last}`);
+  assert.ok(!last.includes('была возможность это увидеть'));
+});
+
+test('передумавшему в правильную сторону — вопрос про разворот', () => {
+  const s = createSession(scenario, 1);
+  commitAction(s, scenario, 'a_discount', {
+    hypothesisId: 'h2', expectation: 'Ставлю на конкурента, дам скидку',
+    signs: [{ metricId: 'churn_segment', direction: 'down', target: 5 }],
+    confidence: 70, dueWeek: 5
+  });
+  step(s, scenario, 4);
+  checkpointNote(s, { confidence: 50, forCheckpoint: 4 });
+  openSource(s, scenario, 's_support');
+  commitAction(s, scenario, 'a_outreach', {
+    hypothesisId: 'h4', expectation: 'Похоже, дело в поддержке — попробую обзвон',
+    signs: [{ metricId: 'churn_segment', direction: 'down', target: 6 }],
+    confidence: 55, dueWeek: 12
+  });
+  runToEnd(s, scenario);
+  const q = buildDebrief(s, scenario).questions;
+  assert.ok(q[q.length - 1].includes('поменял мнение'), q[q.length - 1]);
+});
+
+test('не угадавшему остаётся прежний вопрос', () => {
+  const s = createSession(scenario, 1);
+  commitAction(s, scenario, 'a_fix_onboarding', {
+    hypothesisId: 'h1', expectation: 'Думаю, дело в онбординге после релиза',
+    signs: [{ metricId: 'churn_segment', direction: 'down', target: 5 }],
+    confidence: 80, dueWeek: 11
+  });
+  runToEnd(s, scenario);
+  const q = buildDebrief(s, scenario).questions;
+  assert.ok(q[q.length - 1].includes('была возможность это увидеть'), q[q.length - 1]);
+});

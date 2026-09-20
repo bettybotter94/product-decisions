@@ -105,9 +105,10 @@ function discussionQuestions({ seeking, breadth, contracts, afterError, timing, 
   for (const t of timing) {
     if (t.dueBeforeEffect) {
       add(45,
-        `Ты назначил срок на ${t.dueWeek}-ю неделю, а раньше ` +
-        `${t.earliestPossibleWeek}-й это действие не могло проявиться вообще. ` +
-        'Из чего ты выбирал срок?');
+        `Ты назначил срок на ${t.dueWeek}-ю неделю, а эффект выбранного ` +
+        `действия по правилам мира не приходит раньше ${t.earliestPossibleWeek}-й. ` +
+        'Что бы ни сдвинулось к твоему сроку — это сдвинулось само, ' +
+        'без твоего участия. Из чего ты выбирал срок?');
     }
   }
 
@@ -133,8 +134,28 @@ function discussionQuestions({ seeking, breadth, contracts, afterError, timing, 
     .map(x => x.text)
     .filter(t => (seen.has(t) ? false : seen.add(t)));
 
-  ordered.push(
-    `Настоящая причина в этом варианте — «${truth.label}». ` +
-    'На каком шаге у тебя была возможность это увидеть?');
+  // Закрывающий вопрос зависит от того, назвал человек причину или нет.
+  // Спрашивать «на каком шаге ты мог это увидеть» у того, кто её увидел, —
+  // значит отчитывать за верный ответ.
+  const first = contracts[0]?.hypothesisId;
+  const last = contracts[contracts.length - 1]?.hypothesisId;
+  const gotIt = last === truth.id;
+  const cameToIt = gotIt && first !== truth.id;
+
+  if (cameToIt) {
+    ordered.push(
+      `Настоящая причина — «${truth.label}». Сначала ты думал иначе и ` +
+      'поменял мнение по ходу. Что именно тебя развернуло — и почему ' +
+      'это не сработало с первого раза?');
+  } else if (gotIt) {
+    ordered.push(
+      `Настоящая причина — «${truth.label}», и ты назвал её верно. ` +
+      'На чём ты на неё вышел? И что в этой ситуации могло бы сбить ' +
+      'с толку человека, который смотрел бы на те же данные?');
+  } else {
+    ordered.push(
+      `Настоящая причина в этом варианте — «${truth.label}». ` +
+      'На каком шаге у тебя была возможность это увидеть?');
+  }
   return ordered;
 }

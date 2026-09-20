@@ -122,3 +122,10 @@ details.recap.block{border:1px solid var(--line);border-radius:8px;padding:9px 1
 details.recap.block>summary{font-weight:600}
 
 .askbox{background:#f2f7f4;border:1px solid #cfded7;border-radius:8px;padding:12px 14px;margin:10px 0}
+
+.sub.warn{color:var(--warn)}
+
+/* стрелок у числовых полей быть не должно: они мешают и ничего не дают */
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
