@@ -47,6 +47,12 @@ let draft = blankDraft();
 if (stage && session.journal.length) tab = 'situation';
 else if (stage) tab = 'episodes';
 
+// Ссылка с #start всегда открывает стартовую страницу — даже у того,
+// кто уже играл и у кого сохранена ступень. Ничего не стирает.
+try {
+  if (location.hash === '#start' || location.search.includes('start')) tab = 'welcome';
+} catch { /* ничего */ }
+
 function blankDraft() {
   return { actionId: '', hypothesisId: '', expectation: '', metricId: '',
            direction: 'down', target: '', confidence: 60, dueWeek: '' };
