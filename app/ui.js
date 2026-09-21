@@ -1,6 +1,6 @@
 import { EPISODES, CASES, byId, variantsOf, keyMetric } from '../scenarios/index.js';
 import { createSession, openSource, commitAction, step, checkpointNote,
-         pendingCheckpoint, fingerprint, finish } from '../engine/session.js';
+         pendingCheckpoint, pendingCheckpoints, fingerprint, finish } from '../engine/session.js';
 import { evaluateContract } from '../engine/contracts.js';
 import { buildDebrief } from '../engine/debrief.js';
 import { loadProfile, saveProfile, summarise, addRun, profileCalibration, trend, byCase }
@@ -320,19 +320,25 @@ function header() {
 
 /* ---------- контрольная точка ---------- */
 function checkpointBanner() {
-  const week = atCheckpoint();
+  const passedAll = pendingCheckpoints(session, scenario);
+  const week = passedAll[passedAll.length - 1] ?? null;
   if (!week) return null;
   const due = evaluated().filter(c => c.dueWeek <= week);
   const passed = session.world.week > week;
   const last = session.contracts[session.contracts.length - 1];
   const current = last && scenario.hypotheses.find(h => h.id === last.hypothesisId);
   return el('div', { class: 'panel stop checkpoint-card' },
-    el('h2', {}, `Контрольная точка: ${week}-я неделя`),
+    el('h2', {}, passedAll.length > 1
+      ? `Контрольные точки: ${passedAll.join('-я и ')}-я недели`
+      : `Контрольная точка: ${week}-я неделя`),
     el('p', { class: 'sub' },
-      (passed
-        ? `Сейчас ${session.world.week}-я неделя: запрос сведений занял больше времени, ` +
-          'чем оставалось до точки, и она прошла на ходу. '
-        : 'Время остановилось само. ') +
+      (passedAll.length > 1
+        ? `Работа заняла несколько недель и прошла мимо сразу ${passedAll.length} точек. ` +
+          'Одной отметки хватит на обе. '
+        : passed
+          ? `Сейчас ${session.world.week}-я неделя: дело заняло больше времени, ` +
+            'чем оставалось до точки, и она прошла на ходу. '
+          : 'Время остановилось само. ') +
       'Здесь ничего не оценивается. Это отметка на полях: что ты думаешь ' +
       'прямо сейчас, до того как узнаешь, чем дело кончилось.'),
     due.length ? el('div', { class: 'sub' },
@@ -372,7 +378,7 @@ function checkpointBanner() {
       el('button', { class: 'act',
         disabled: !noteOk() || (!current && !noteDraft.hypothesisId),
         onclick: () => {
-        const r = checkpointNote(session, { ...noteDraft, forCheckpoint: week });
+        const r = checkpointNote(session, { ...noteDraft, covers: passedAll });
         if (!r.ok) { formError = r.reason; }
         else { noteDraft = { confidence: '', note: '', hypothesisId: '' }; }
         save(); render();

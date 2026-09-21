@@ -110,7 +110,7 @@ export function step(session, scenario, weeks) {
  * что сейчас думает и насколько уверен. Это данные о динамике уверенности,
  * а не действие — мир от неё не меняется.
  */
-export function checkpointNote(session, { confidence, note, forCheckpoint, hypothesisId }) {
+export function checkpointNote(session, { confidence, note, forCheckpoint, covers, hypothesisId }) {
   if (session.finished) return { ok: false, reason: 'Прогон завершён' };
   if (!(confidence >= 1 && confidence <= 99)) return { ok: false, reason: 'Уверенность от 1 до 99%' };
   // До первого решения версии ещё нет — её здесь и называют.
@@ -119,9 +119,13 @@ export function checkpointNote(session, { confidence, note, forCheckpoint, hypot
   if (!session.contracts.length && !hypothesisId) {
     return { ok: false, reason: 'Назови версию, которая сейчас кажется самой правдоподобной' };
   }
+  // Долгая работа может проскочить несколько точек разом. Тогда отметка
+  // одна и закрывает их все: спрашивать одно и то же дважды подряд —
+  // это выглядит как неработающая кнопка.
+  const closes = covers && covers.length ? covers : [forCheckpoint ?? session.world.week];
   log(session, { type: EV.NOTE, confidence, note: (note || '').trim(),
                  hypothesisId: hypothesisId ?? session.contracts[session.contracts.length - 1]?.hypothesisId,
-                 forCheckpoint: forCheckpoint ?? session.world.week });
+                 forCheckpoint: closes[closes.length - 1], covers: closes });
   return { ok: true };
 }
 
@@ -129,13 +133,19 @@ export function checkpointNote(session, { confidence, note, forCheckpoint, hypot
  * Ближайшая контрольная точка, которую уже прошли, но ещё не отметили.
  * Точку можно перешагнуть: запрос сведений стоит недель и время идёт целиком.
  */
+export function pendingCheckpoints(session, scenario) {
+  if (session.finished) return [];
+  if (session.world.week >= scenario.horizonWeeks) return [];
+  const noted = new Set();
+  for (const e of session.journal) {
+    if (e.type !== EV.NOTE) continue;
+    for (const c of e.covers ?? [e.forCheckpoint]) noted.add(c);
+  }
+  return scenario.checkpoints.filter(c => c > 0 && c <= session.world.week && !noted.has(c));
+}
+
 export function pendingCheckpoint(session, scenario) {
-  if (session.finished) return null;
-  if (session.world.week >= scenario.horizonWeeks) return null;
-  const noted = new Set(
-    session.journal.filter(e => e.type === EV.NOTE).map(e => e.forCheckpoint)
-  );
-  return scenario.checkpoints.find(c => c > 0 && c <= session.world.week && !noted.has(c)) ?? null;
+  return pendingCheckpoints(session, scenario)[0] ?? null;
 }
 
 /** Промотать до конца горизонта, останавливаясь на каждой контрольной точке.

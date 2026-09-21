@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import scenario from '../scenarios/churn-a.js';
-import { createSession, openSource, commitAction, step, runToEnd, checkpointNote, pendingCheckpoint } from '../engine/session.js';
+import { createSession, openSource, commitAction, step, runToEnd, checkpointNote, pendingCheckpoint, pendingCheckpoints } from '../engine/session.js';
 import { aliveHypotheses, informationSeeking, postErrorBehaviour, patience, timingCheck } from '../engine/analysis.js';
 import { buildDebrief } from '../engine/debrief.js';
 
@@ -319,4 +319,22 @@ test('не угадавшему остаётся прежний вопрос', (
   runToEnd(s, scenario);
   const q = buildDebrief(s, scenario).questions;
   assert.ok(q[q.length - 1].includes('была возможность это увидеть'), q[q.length - 1]);
+});
+
+// Долгая работа может проскочить сразу две точки. Если после отметки
+// немедленно выскакивает вторая такая же, человек читает это как
+// «кнопка не сработала» — именно на это жаловались вживую.
+test('одна отметка закрывает все проскоченные точки', () => {
+  const s = createSession(scenario, 1);
+  commitAction(s, scenario, 'a_fix_onboarding', {
+    hypothesisId: 'h1', expectation: 'Долгая работа: проскочим сразу две точки',
+    signs: [{ metricId: 'churn_segment', direction: 'down', target: 5 }],
+    confidence: 70, dueWeek: 11
+  });
+  step(s, scenario, 4);
+  const passed = pendingCheckpoints(s, scenario);
+  assert.ok(passed.length >= 2, `ожидались две точки, прошло ${passed.length}`);
+  checkpointNote(s, { confidence: 60, covers: passed, hypothesisId: 'h1' });
+  assert.deepEqual(pendingCheckpoints(s, scenario), [],
+    'после одной отметки осталась висеть вторая точка');
 });
