@@ -338,7 +338,22 @@ function checkpointBanner() {
     due.length ? el('div', { class: 'sub' },
       'Сроки, которые уже наступили: ' +
       due.map(c => `${c.verdict === 'met' ? 'сбылось' : 'не сбылось'} (${c.dueWeek}-я неделя)`).join(', ')) : null,
-    el('label', {}, 'Насколько ты сейчас уверен в своей версии, %'),
+    current
+      ? el('div', { class: 'sub' },
+          'Твоя версия сейчас: ', el('b', {}, current.label))
+      : el('div', {},
+          el('label', {}, 'Какая версия сейчас кажется самой правдоподобной?'),
+          el('select', { onchange: e => { noteDraft.hypothesisId = e.target.value; render(); } },
+            el('option', { value: '' }, '— выбери —'),
+            scenario.hypotheses.map(h => el('option',
+              { value: h.id, selected: noteDraft.hypothesisId === h.id }, h.label))),
+          el('div', { class: 'sub', style: 'margin-top:4px' },
+            'Решение это не фиксирует и времени не стоит — просто отметка, ' +
+            'куда ты клонишь на этой неделе.')),
+
+    el('label', {}, current
+      ? 'Насколько ты в ней уверен сейчас, %'
+      : 'Насколько ты в ней уверен, %'),
     el('input', { type: 'text', inputmode: 'numeric', placeholder: 'от 1 до 99',
       value: noteDraft.confidence,
       oninput: e => {
